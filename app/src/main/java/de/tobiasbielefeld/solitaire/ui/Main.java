@@ -36,10 +36,17 @@ import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+
+import com.facebook.ads.Ad;
+import com.facebook.ads.AdChoicesView;
+import com.facebook.ads.AdError;
+import com.facebook.ads.AdListener;
+import com.facebook.ads.NativeAd;
 
 import de.tobiasbielefeld.solitaire.R;
 import de.tobiasbielefeld.solitaire.classes.Card;
@@ -60,6 +67,7 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
     public Button buttonAutoComplete;
     public TextView mainTextViewTime, mainTextViewScore;
     public RelativeLayout layoutGame;                                                               //contains the game stacks and cards
+    NativeAd nativeAd;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -74,7 +82,7 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         savedData = PreferenceManager.getDefaultSharedPreferences(this);                            //get the shared pref
         editor = savedData.edit();                                                                  //and an editor, otherwise using savedData.edit() would cause problems when loading data
         editor.apply();
-
+        getAd();
         for (int i = 0; i < cards.length; i++)                                                      //initialize objects
             cards[i] = new Card(i);
         for (int i = 0; i < stacks.length; i++)
@@ -116,6 +124,39 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         loadBackgroundColor();
         showOrHideStatusBar();
         setOrientation();
+    }
+
+    private void getAd(){
+
+        nativeAd = new NativeAd(this, "YOUR_PLACEMENT_ID");
+        nativeAd.setAdListener(new AdListener() {
+            @Override
+            public void onError(Ad ad, AdError adError) {
+
+            }
+
+            @Override
+            public void onAdLoaded(Ad ad) {
+                ImageView ivMenuAd = (ImageView) findViewById(R.id.ivMenuAd);
+                NativeAd.downloadAndDisplayImage(nativeAd.getAdCoverImage(),ivMenuAd);
+                ivMenuAd.setVisibility(View.VISIBLE);
+                nativeAd.registerViewForInteraction(ivMenuAd);
+
+                TextView tvAdTitle = (TextView) findViewById(R.id.tvAdTitle);
+                tvAdTitle.setText(nativeAd.getAdTitle());
+                AdChoicesView adChoicesView = new AdChoicesView(Main.this,nativeAd,true);
+                FrameLayout adContainer = (FrameLayout) findViewById(R.id.ad_container);
+                adContainer.addView(adChoicesView);
+
+            }
+
+            @Override
+            public void onAdClicked(Ad ad) {
+
+            }
+        });
+
+        nativeAd.loadAd();
     }
 
     @Override
@@ -226,9 +267,6 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         switch (view.getId()) {
             case R.id.mainButtonScores:
                 startActivity(new Intent(getApplicationContext(), HighScores.class));               //open high scores activity
-                break;
-            case R.id.mainButtonUndo:
-                recordList.undo();                                                                  //undo last movement
                 break;
             case R.id.mainButtonHint:
                 hint.show_hint();                                                                   //show a hint
