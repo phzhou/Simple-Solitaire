@@ -37,6 +37,7 @@ import android.view.View;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
@@ -80,7 +81,7 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
             stacks[i] = new Stack(i);
 
         for (int i = 0; i < cards.length; i++) {                                                    //create the cards
-            ImageView view = new ImageView(this);                                                   //with a new image view
+            LinearLayout view = new LinearLayout(this);                                                   //with a new image view
             view.setId(i);                                                                          //set an id so the id of the view is the same as the card id (needed so when you touch the image view with id=5 is also the card with id=5 and so on
             view.setOnTouchListener(this);                                                          //listener to handle touch events
             cards[i].mView = view;                                                                  //and link the image view to the card
@@ -88,7 +89,7 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         }
 
         for (Stack stack : stacks) {                                                                //create stacks the same way
-            ImageView view = new ImageView(this);
+            LinearLayout view = new LinearLayout(this);
 
             if (stack.getID()>6 && stack.getID()<=10)                                               //set the background according to the id
                 view.setBackgroundResource(R.drawable.background_stack_foundations);

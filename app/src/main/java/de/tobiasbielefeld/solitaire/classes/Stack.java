@@ -19,6 +19,7 @@
 package de.tobiasbielefeld.solitaire.classes;
 
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import java.util.ArrayList;
 
@@ -43,7 +44,7 @@ public class Stack {
     public static int sDefaultSpacing;                                                              //The default space between cards, will be calculated in onCreate of the Main activity
     public static int sSpacingMaxHeight;                                                            //max height of the stapled cards on a stack
 
-    public ImageView mView;                                                                         //Background of the stack
+    public LinearLayout mView;                                                                         //Background of the stack
     private int mID;                                                                                //mID: 0 to 6 tableau. 7 to 10 foundations. 11 and 12 discard and Main stack
     private int mSpacing;                                                                           //current spacing mValue
     private ArrayList<Card> mCurrentCards = new ArrayList<>();                                      //the array of cards on the stack

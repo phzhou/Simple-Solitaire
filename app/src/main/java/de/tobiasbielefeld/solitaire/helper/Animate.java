@@ -220,9 +220,9 @@ public class Animate {
         growSet.addListener(new Animator.AnimatorListener() {
             public void onAnimationStart(Animator animation) {
                 if (mode)   //flip up
-                    card.mView.setImageResource(Card.sDrawables[card.getID()]);
+                    card.mView.setBackgroundResource(Card.sDrawables[card.getID()]);
                 else //flip down
-                    card.mView.setImageResource(Card.sBackground);
+                    card.mView.setBackgroundResource(Card.sBackground);
             }
 
             public void onAnimationEnd(Animator animation) {

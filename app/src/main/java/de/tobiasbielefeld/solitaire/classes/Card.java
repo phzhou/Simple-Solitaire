@@ -20,8 +20,11 @@ package de.tobiasbielefeld.solitaire.classes;
 
 import android.graphics.PointF;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 
 import de.tobiasbielefeld.solitaire.R;
+import de.tobiasbielefeld.solitaire.ui.NativeAdUtil;
 
 import static de.tobiasbielefeld.solitaire.SharedData.*;
 import static de.tobiasbielefeld.solitaire.helper.CardDrawables.*;
@@ -40,13 +43,14 @@ public class Card {
     public static int sWidth, sHeight;                                                              //sWidth and sHeight calculated in relation of the screen dimensions in Main activity
     public static int[] sDrawables;                                                                 //array with the drawables of the cards
     public static int sBackground;                                                                  //background drawable of the cards
-    public ImageView mView;                                                                         //the image view of the card, for easier code not private
+    public LinearLayout mView;                                                                         //the image view of the card, for easier code not private
     private int mColor;                                                                             //1=clubs 2=hearts 3=Spades 4=diamonds
     private int mValue;                                                                             //1=ace 2,3,4,5,6,7,8,9,10, 11=joker 12=queen 13=king
     private Stack mStack;                                                                           //saves the stack where the card is placed
     private int mID;                                                                                //internal id
     private boolean mIsUp;                                                                          //indicates if the card is placed upwards or backwards
     private PointF mOldLocation = new PointF();                                                     //old location so cards can be moved back if they can't placed on a new stack
+    private boolean shown = false;
 
     public Card(int ID) {                                                                           //Constructor: sets the mID and mValues
         mID = ID;
@@ -75,7 +79,7 @@ public class Card {
 
         for (int i = 0; i < cards.length; i++)                                                      //and update all cards which are flipped up
             if (cards[i].isUp())
-                cards[i].mView.setImageResource(sDrawables[i]);
+                cards[i].mView.setBackgroundResource(sDrawables[i]);
     }
 
     public static void updateCardBackgroundChoice() {                                               //set the drawable for the card background
@@ -121,7 +125,7 @@ public class Card {
 
         for (Card card : cards)                                                                     //and update all cards which are flipped down
             if (!card.isUp())
-                card.mView.setImageResource(sBackground);
+                card.mView.setBackgroundResource(sBackground);
     }
 
     public int getID() {                                                                            //gets the mID
@@ -165,12 +169,12 @@ public class Card {
 
     public void flipUp() {                                                                          //flip a card up
         mIsUp = true;
-        mView.setImageResource(sDrawables[mID]);                                                    //set image to the front of a card
+        mView.setBackgroundResource(sDrawables[mID]);                                                    //set image to the front of a card
     }
 
     void flipDown() {                                                                               //flip a card down
         mIsUp = false;
-        mView.setImageResource(sBackground);                                                        //set image to the background
+        mView.setBackgroundResource(sBackground);                                                        //set image to the background
     }
 
     public void flip() {                                                                            //flips a card to the other direction
