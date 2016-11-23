@@ -114,15 +114,31 @@
             android:layout_weight="1"
             android:contentDescription="@string/menu_restart"/>
 
-        <ImageView
+        <FrameLayout
+            android:id="@+id/ad_container"
             android:layout_width="50dp"
             android:layout_height="0dp"
-            android:id="@+id/mainButtonUndo"
-            android:src="@drawable/undo"
-            android:onClick="menuClick"
-            android:background="@drawable/button_menu"
+            android:layout_weight="1">
+
+            <ImageView
+                android:id="@+id/ivMenuAd"
+                android:layout_width="wrap_content"
+                android:layout_height="50dp"
+
+                android:contentDescription=""
+                android:onClick=""/>
+        </FrameLayout>
+        <TextView
+            android:id="@+id/tvAdTitle"
+            style="@android:style/TextAppearance.Small"
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
             android:layout_weight="1"
-            android:contentDescription="@string/menu_undo"/>
+            android:gravity="center"
+            android:maxLines="3"
+            android:text=""
+            android:visibility="gone"/>
+
 
         <ImageView
             android:layout_width="50dp"

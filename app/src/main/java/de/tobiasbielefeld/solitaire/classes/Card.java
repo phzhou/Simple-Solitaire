@@ -19,12 +19,9 @@
 package de.tobiasbielefeld.solitaire.classes;
 
 import android.graphics.PointF;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
 import de.tobiasbielefeld.solitaire.R;
-import de.tobiasbielefeld.solitaire.ui.NativeAdUtil;
 
 import static de.tobiasbielefeld.solitaire.SharedData.*;
 import static de.tobiasbielefeld.solitaire.helper.CardDrawables.*;

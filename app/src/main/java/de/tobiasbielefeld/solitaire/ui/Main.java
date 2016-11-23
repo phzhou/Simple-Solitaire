@@ -139,7 +139,6 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
             public void onAdLoaded(Ad ad) {
                 ImageView ivMenuAd = (ImageView) findViewById(R.id.ivMenuAd);
                 NativeAd.downloadAndDisplayImage(nativeAd.getAdCoverImage(),ivMenuAd);
-                ivMenuAd.setVisibility(View.VISIBLE);
                 nativeAd.registerViewForInteraction(ivMenuAd);
 
                 TextView tvAdTitle = (TextView) findViewById(R.id.tvAdTitle);
