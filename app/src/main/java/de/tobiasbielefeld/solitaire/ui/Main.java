@@ -21,6 +21,7 @@ package de.tobiasbielefeld.solitaire.ui;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
@@ -42,6 +43,9 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.facebook.FacebookSdk;
+import com.facebook.appevents.AppEventsLogger;
+
 import com.facebook.ads.Ad;
 import com.facebook.ads.AdChoicesView;
 import com.facebook.ads.AdError;
@@ -51,6 +55,7 @@ import com.facebook.ads.NativeAd;
 import de.tobiasbielefeld.solitaire.R;
 import de.tobiasbielefeld.solitaire.classes.Card;
 import de.tobiasbielefeld.solitaire.classes.Stack;
+import de.tobiasbielefeld.solitaire.dialogs.RestartDialog;
 
 import static de.tobiasbielefeld.solitaire.SharedData.*;
 
@@ -59,7 +64,8 @@ import static de.tobiasbielefeld.solitaire.SharedData.*;
  * touch events and menu clicks are also handled here
  */
 
-public class Main extends AppCompatActivity implements View.OnTouchListener {
+public class Main extends AppCompatActivity
+        implements View.OnTouchListener, RestartDialog.RestartDialogListener {
 
     private long backPressedTime;
 
@@ -69,10 +75,22 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
     public RelativeLayout layoutGame;                                                               //contains the game stacks and cards
     NativeAd nativeAd;
 
+    private AppEventsLogger appEventsLogger;
+
+    public static String TAG_ADS = "tag_ads";
+
+    public static String EVENT_AD_LOADED = "ad_loaded";
+    public static String EVENT_AD_CLICKED = "ad_clicked";
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);                                                         //initialize stuff
         setContentView(R.layout.activity_main);
+
+        FacebookSdk.sdkInitialize(this);
+        AppEventsLogger.activateApp(this);
+
+        appEventsLogger = AppEventsLogger.newLogger(this);
 
         mainActivity = this;
         layoutGame = (RelativeLayout) findViewById(R.id.mainRelativeLayoutGame);                    //set layout
@@ -128,15 +146,19 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
 
     private void getAd(){
 
-        nativeAd = new NativeAd(this, "YOUR_PLACEMENT_ID");
+        // nativeAd = new NativeAd(this, "YOUR_PLACEMENT_ID");
+        nativeAd = new NativeAd(this, getString(R.string.menu_button_native_placement_id));
         nativeAd.setAdListener(new AdListener() {
             @Override
             public void onError(Ad ad, AdError adError) {
-
+                Log.e(Main.TAG_ADS, "Load error! " + adError.getErrorCode() + ":" +
+                        adError.getErrorMessage());
             }
 
             @Override
             public void onAdLoaded(Ad ad) {
+                Log.d(Main.TAG_ADS, "Ad loaded!");
+
                 ImageView ivMenuAd = (ImageView) findViewById(R.id.ivMenuAd);
                 NativeAd.downloadAndDisplayImage(nativeAd.getAdCoverImage(),ivMenuAd);
                 nativeAd.registerViewForInteraction(ivMenuAd);
@@ -147,11 +169,13 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
                 FrameLayout adContainer = (FrameLayout) findViewById(R.id.ad_container);
                 adContainer.addView(adChoicesView);
 
+                appEventsLogger.logEvent(EVENT_AD_LOADED);
             }
 
             @Override
             public void onAdClicked(Ad ad) {
-
+                Log.d(Main.TAG_ADS, "Ad clicked!");
+                appEventsLogger.logEvent(EVENT_AD_CLICKED);
             }
         });
 
@@ -368,26 +392,20 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         Stack.sSpacingMaxHeight = (int) ((layoutGame.getHeight() - stacks[0].mView.getY()));        //set a max height, so the cards won't go over the screen size
     }
 
-    public static class RestartDialog extends DialogFragment {
-        @Override
-        @NonNull
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            AlertDialog.Builder builder = new AlertDialog.Builder(getActivity());
 
-            builder.setTitle(R.string.app_name)
-                    .setItems(R.array.restart_menu, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int which) {
-                            // "which" argument contains index of selected item. 0 is new game, 1 is re-deal
-                            game.newGame(which);
-                        }
-                    })
-                    .setNegativeButton(R.string.cancel, new DialogInterface.OnClickListener() {
-                        public void onClick(DialogInterface dialog, int id) {
-                            //just cancel
-                        }
-                    });
 
-            return builder.create();
+    public void onFinishedRestartDialog(int result) {
+        switch (result) {
+            case RestartDialog.NEW_GAME:
+                game.newGame(RestartDialog.NEW_GAME);
+                getAd();
+                break;
+            case RestartDialog.RE_DEAL:
+                game.newGame(RestartDialog.RE_DEAL);
+                getAd();
+                break;
+            // case RestartDialog.CANCEL:
+            // break;
         }
     }
 
