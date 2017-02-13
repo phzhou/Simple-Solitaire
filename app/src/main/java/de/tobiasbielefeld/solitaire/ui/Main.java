@@ -26,16 +26,20 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.annotation.NonNull;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AppCompatActivity;
+import android.transition.Transition;
+import android.transition.TransitionValues;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
 import android.view.View;
 import android.view.WindowManager;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
@@ -44,6 +48,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.facebook.FacebookSdk;
+import com.facebook.ads.AdSettings;
+import com.facebook.ads.MediaView;
 import com.facebook.appevents.AppEventsLogger;
 
 import com.facebook.ads.Ad;
@@ -87,6 +93,12 @@ public class Main extends AppCompatActivity
         super.onCreate(savedInstanceState);                                                         //initialize stuff
         setContentView(R.layout.activity_main);
 
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            getWindow().getSharedElementEnterTransition()
+                    .setDuration(750)
+                    .setInterpolator(new DecelerateInterpolator());
+        }
+
         FacebookSdk.sdkInitialize(this);
         AppEventsLogger.activateApp(this);
 
@@ -97,6 +109,7 @@ public class Main extends AppCompatActivity
         mainTextViewTime = (TextView) findViewById(R.id.mainTextViewTime);
         mainTextViewScore = (TextView) findViewById(R.id.mainTextViewScore);
         buttonAutoComplete = (Button) findViewById(R.id.buttonMainAutoComplete);
+
         savedData = PreferenceManager.getDefaultSharedPreferences(this);                            //get the shared pref
         editor = savedData.edit();                                                                  //and an editor, otherwise using savedData.edit() would cause problems when loading data
         editor.apply();
@@ -146,40 +159,21 @@ public class Main extends AppCompatActivity
 
     private void getAd(){
 
-        // nativeAd = new NativeAd(this, "YOUR_PLACEMENT_ID");
-        nativeAd = new NativeAd(this, getString(R.string.menu_button_native_placement_id));
-        nativeAd.setAdListener(new AdListener() {
-            @Override
-            public void onError(Ad ad, AdError adError) {
-                Log.e(Main.TAG_ADS, "Load error! " + adError.getErrorCode() + ":" +
-                        adError.getErrorMessage());
-            }
+        // Get the same ad loaded for the full screen native ad
+        nativeAd = NativeAdLoader.getInstance().getNativeAd();
+        if (nativeAd != null) {
+            ImageView ivMenuAd = (ImageView) findViewById(R.id.ivMenuAd);
+            NativeAd.downloadAndDisplayImage(nativeAd.getAdCoverImage(), ivMenuAd);
+            nativeAd.registerViewForInteraction(ivMenuAd);
 
-            @Override
-            public void onAdLoaded(Ad ad) {
-                Log.d(Main.TAG_ADS, "Ad loaded!");
+            TextView tvAdTitle = (TextView) findViewById(R.id.tvAdTitle);
+            tvAdTitle.setText(nativeAd.getAdTitle());
+            Log.d(TAG_ADS, "Title: " + nativeAd.getAdTitle());
 
-                ImageView ivMenuAd = (ImageView) findViewById(R.id.ivMenuAd);
-                NativeAd.downloadAndDisplayImage(nativeAd.getAdCoverImage(),ivMenuAd);
-                nativeAd.registerViewForInteraction(ivMenuAd);
-
-                TextView tvAdTitle = (TextView) findViewById(R.id.tvAdTitle);
-                tvAdTitle.setText(nativeAd.getAdTitle());
-                AdChoicesView adChoicesView = new AdChoicesView(Main.this,nativeAd,true);
-                FrameLayout adContainer = (FrameLayout) findViewById(R.id.ad_container);
-                adContainer.addView(adChoicesView);
-
-                appEventsLogger.logEvent(EVENT_AD_LOADED);
-            }
-
-            @Override
-            public void onAdClicked(Ad ad) {
-                Log.d(Main.TAG_ADS, "Ad clicked!");
-                appEventsLogger.logEvent(EVENT_AD_CLICKED);
-            }
-        });
-
-        nativeAd.loadAd();
+            AdChoicesView adChoicesView = new AdChoicesView(Main.this,nativeAd,true);
+            FrameLayout adContainer = (FrameLayout) findViewById(R.id.ad_container);
+            adContainer.addView(adChoicesView);
+        }
     }
 
     @Override
@@ -205,12 +199,17 @@ public class Main extends AppCompatActivity
         long BACK_PRESSED_TIME_DELTA = 2000;
 
         if (keyCode == KeyEvent.KEYCODE_BACK                                                        //if it was the back key and this feature is still activated in the Settings,
-                && savedData.getBoolean(getString(R.string.pref_key_confirm_closing_game), true)
-                && (System.currentTimeMillis() - backPressedTime > BACK_PRESSED_TIME_DELTA)) {      //and the delta to the last time pressed button is over the max time
+                && savedData.getBoolean(getString(R.string.pref_key_confirm_closing_game), true)) {
 
-            showToast(getString(R.string.game_press_again));                                        //show toast to press again
-            backPressedTime = System.currentTimeMillis();                                           //and save the time as pressed
-            return true;                                                                            //don't exit the game
+            if (System.currentTimeMillis() - backPressedTime > BACK_PRESSED_TIME_DELTA) {          //and the delta to the last time pressed button is over the max time)
+                showToast(getString(R.string.game_press_again));                                        //show toast to press again
+                backPressedTime = System.currentTimeMillis();                                           //and save the time as pressed
+                return true;                                                                            //don't exit the game
+            } else {
+                // Exit
+                finish();
+                overridePendingTransition(0, 0);
+            }
         }
 
         return super.onKeyDown(keyCode, event);                                                     //if the time delta is smaller than the max time, close game
