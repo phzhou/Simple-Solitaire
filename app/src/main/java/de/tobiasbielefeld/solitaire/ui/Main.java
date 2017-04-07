@@ -46,12 +46,16 @@ import de.tobiasbielefeld.solitaire.classes.Stack;
 
 import static de.tobiasbielefeld.solitaire.SharedData.*;
 
+import com.facebook.ads.*;
+
+
 /*
  * Main activity initializes the cards and stacks positions and some of my variables.
  * touch events and menu clicks are also handled here
  */
 
-public class Main extends AppCompatActivity implements View.OnTouchListener {
+public class Main extends AppCompatActivity
+        implements View.OnTouchListener, InterstitialAdListener {
 
     private long backPressedTime;
 
@@ -59,6 +63,8 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
     public Button buttonAutoComplete;
     public TextView mainTextViewTime, mainTextViewScore;
     public RelativeLayout layoutGame;                                                               //contains the game stacks and cards
+
+    private InterstitialAd interstitialAd;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -115,6 +121,10 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
         loadBackgroundColor();
         showOrHideStatusBar();
         setOrientation();
+
+        interstitialAd = new InterstitialAd(this, getString(R.string.interstitial_placement_id));
+        interstitialAd.setAdListener(this);
+        interstitialAd.loadAd();
     }
 
     @Override
@@ -339,6 +349,7 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
             builder.setTitle(R.string.app_name)
                     .setItems(R.array.restart_menu, new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
+                            ((Main)getActivity()).onGameRestart();
                             // "which" argument contains index of selected item. 0 is new game, 1 is re-deal
                             game.newGame(which);
                         }
@@ -368,5 +379,37 @@ public class Main extends AppCompatActivity implements View.OnTouchListener {
                 setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_REVERSE_LANDSCAPE);
                 break;
         }
+    }
+
+    public void onGameRestart() {
+        if (interstitialAd.isAdLoaded()) {
+            interstitialAd.show();
+        }
+    }
+
+    // InterstitialAdListener
+    @Override
+    public void onInterstitialDisplayed(Ad ad) {
+
+    }
+
+    @Override
+    public void onInterstitialDismissed(Ad ad) {
+
+    }
+
+    @Override
+    public void onAdLoaded(Ad ad) {
+        showToast("Ad loaded!");
+    }
+
+    @Override
+    public void onAdClicked(Ad ad) {
+
+    }
+
+    @Override
+    public void onError(Ad ad, AdError adError) {
+        showToast(adError.getErrorMessage());
     }
 }

@@ -76,4 +76,6 @@
     <string name="about_description">Show information about the game like licenses and changelog</string>
     <string name="pref_key_about" translatable="false">pref_key_about</string>
 
+    <string name="interstitial_placement_id">1827858704164319_1900626560220866</string>
+
 </resources>
